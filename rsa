@@ -1,38 +1,6 @@
 import sys
 import random
 
-def gcd(a, b):
-    while b:
-        a, b = b, a % b
-    return a
-
-def pollard_rho(n):
-    x = random.randint(1, n-1)
-    y = x
-    c = random.randint(1, n-1)
-    d = 1
-    while d == 1:
-        x = (pow(x, 2, n) + c) % n
-        y = (pow(y, 2, n) + c) % n
-        y = (pow(y, 2, n) + c) % n
-        d = gcd(abs(x-y), n)
-        if d == n:
-            return None
-    return d
-
-def factorize_number(n):
-    factors = []
-    while n != 1:
-        if is_prime(n):
-            factors.append(n)
-            break
-        factor = pollard_rho(n)
-        if factor is None:
-            return None
-        factors.append(factor)
-        n //= factor
-    return factors
-
 def is_prime(n, k=10):
     if n <= 3:
         return n == 2 or n == 3
@@ -57,19 +25,25 @@ def is_prime(n, k=10):
             return False
     return True
 
+def factorize_number(n):
+    for i in range(2, int(n**0.5) + 1):
+        if n % i == 0 and is_prime(i) and is_prime(n // i):
+            return i, n // i
+    return None, None
+
 def factorize_file(file_path):
     with open(file_path, 'r') as file:
         number = int(file.readline().strip())
 
-    factorization = factorize_number(number)
-    if factorization is None:
+    p, q = factorize_number(number)
+    if p is None or q is None:
         print(f"Failed to find prime factors of {number}.")
     else:
-        print(f"{number}={factorization[0]}*{factorization[1]}")
+        print(f"{number}={p}*{q}")
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:
-        print("Usage: factorize_primes <file>")
+        print("Usage: factorize_rsa <file>")
     else:
         file_path = sys.argv[1]
         factorize_file(file_path)
